@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Task LvL Up" />
+  <title>Task LvL Up</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #10101a;
+      --bg3: #16162a;
+      --card: #1a1a2e;
+      --card2: #1e1e38;
+      --gold: #f0c040;
+      --gold2: #ffd700;
+      --gold-dim: rgba(240,192,64,0.15);
+      --cyan: #00e5ff;
+      --cyan-dim: rgba(0,229,255,0.12);
+      --red: #ff4060;
+      --green: #39ff85;
+      --purple: #a855f7;
+      --border: rgba(240,192,64,0.2);
+      --text: #e8e0f0;
+      --text-dim: #8880a0;
+      --font-title: 'Cinzel Decorative', serif;
+      --font-body: 'Rajdhani', sans-serif;
+      --radius: 12px;
+      --glow-gold: 0 0 20px rgba(240,192,64,0.4);
+      --glow-cyan: 0 0 20px rgba(0,229,255,0.3);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* BG particle layer */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 20% 10%, rgba(168,85,247,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 80% 90%, rgba(0,229,255,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 30% at 50% 50%, rgba(240,192,64,0.04) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding-bottom: 80px; }
+
+    /* ── HEADER ── */
+    .header {
+      padding: 20px 20px 12px;
+      background: linear-gradient(180deg, rgba(10,10,15,0.98) 0%, rgba(10,10,15,0.85) 100%);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .app-logo {
+      font-family: var(--font-title);
+      font-size: 14px;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, var(--gold), var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .date-badge {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Character Card */
+    .char-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+    .char-avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--bg3), var(--card2));
+      border: 2px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      box-shadow: var(--glow-gold);
+      flex-shrink: 0;
+      position: relative;
+      cursor: pointer;
+    }
+    .char-avatar::after {
+      content: '✏️';
+      position: absolute;
+      bottom: -4px; right: -4px;
+      font-size: 12px;
+      background: var(--card);
+      border-radius: 50%;
+      width: 18px; height: 18px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border);
+    }
+    .char-info { flex: 1; min-width: 0; }
+    .char-name {
+      font-family: var(--font-title);
+      font-size: 13px;
+      color: var(--gold);
+      margin-bottom: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .char-class { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 6px; }
+    .xp-bar-wrap { position: relative; }
+    .xp-bar-bg {
+      height: 8px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid rgba(240,192,64,0.15);
+    }
+    .xp-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold2));
+      border-radius: 4px;
+      transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+      position: relative;
+    }
+    .xp-bar-fill::after {
+      content: '';
+      position: absolute;
+      right: 0; top: 0; bottom: 0;
+      width: 8px;
+      background: white;
+      opacity: 0.4;
+      border-radius: 4px;
+      animation: pulse-bar 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-bar { 0%,100%{opacity:0.4} 50%{opacity:0.8} }
+    .xp-label { display: flex; justify-content: space-between; margin-top: 3px; }
+    .xp-label span { font-size: 10px; color: var(--text-dim); }
+    .xp-label .xp-val { color: var(--gold); font-weight: 700; }
+
+    .char-level {
+      display: flex; flex-direction: column; align-items: center;
+      background: var(--gold-dim);
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      padding: 6px 10px;
+      min-width: 44px;
+    }
+    .level-num { font-family: var(--font-title); font-size: 20px; color: var(--gold); line-height: 1; }
+    .level-lbl { font-size: 9px; color: var(--gold); letter-spacing: 1px; }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      padding: 16px 20px 0;
+      gap: 8px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 6px;
+      background: var(--card);
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      color: var(--text-dim);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .tab-btn .tab-icon { font-size: 18px; }
+    .tab-btn.active {
+      background: var(--gold-dim);
+      border-color: var(--gold);
+      color: var(--gold);
+      box-shadow: var(--glow-gold);
+    }
+
+    /* ── SECTIONS ── */
+    .section { padding: 16px 20px; display: none; }
+    .section.active { display: block; }
+
+    .section-title {
+      font-family: var(--font-title);
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── TODAY VIEW ── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .stat-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+      text-align: center;
+    }
+    .stat-val { font-family: var(--font-title); font-size: 20px; color: var(--gold); }
+    .stat-lbl { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; }
+
+    /* Task item */
+    .task-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .task-item::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      border-radius: 4px 0 0 4px;
+    }
+    .task-item[data-cat="sport"]::before { background: var(--cyan); }
+    .task-item[data-cat="courses"]::before { background: var(--green); }
+    .task-item[data-cat="sante"]::before { background: var(--red); }
+    .task-item[data-cat="perso"]::before { background: var(--purple); }
+    .task-item[data-cat="travail"]::before { background: var(--gold); }
+    .task-item[data-cat="autre"]::before { background: var(--text-dim); }
+
+    .task-item.done {
+      opacity: 0.5;
+      border-color: rgba(57,255,133,0.2);
+    }
+    .task-item.done .task-name { text-decoration: line-through; color: var(--text-dim); }
+
+    .task-check {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.25s;
+      font-size: 14px;
+    }
+    .task-item.done .task-check {
+      background: var(--green);
+      border-color: var(--green);
+      box-shadow: 0 0 12px rgba(57,255,133,0.4);
+    }
+    .task-body { flex: 1; min-width: 0; }
+    .task-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .task-meta { display: flex; align-items: center; gap: 6px; }
+    .task-cat {
+      font-size: 10px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .task-cat.sport { background: rgba(0,229,255,0.12); color: var(--cyan); }
+    .task-cat.courses { background: rgba(57,255,133,0.12); color: var(--green); }
+    .task-cat.sante { background: rgba(255,64,96,0.12); color: var(--red); }
+    .task-cat.perso { background: rgba(168,85,247,0.12); color: var(--purple); }
+    .task-cat.travail { background: var(--gold-dim); color: var(--gold); }
+    .task-cat.autre { background: rgba(136,128,160,0.12); color: var(--text-dim); }
+
+    .task-xp {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--gold);
+      background: var(--gold-dim);
+      padding: 2px 7px;
+      border-radius: 20px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    /* ── CALENDAR VIEW ── */
+    .cal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .cal-nav {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 16px; color: var(--gold);
+      transition: all 0.2s;
+    }
+    .cal-nav:active { background: var(--gold-dim); }
+    .cal-month { font-family: var(--font-title); font-size: 13px; color: var(--text); letter-spacing: 2px; }
+
+    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 16px; }
+    .cal-day-label { text-align: center; font-size: 10px; color: var(--text-dim); letter-spacing: 1px; padding: 4px 0; }
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border-radius: 8px;
+      background: var(--card);
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      position: relative;
+      transition: all 0.2s;
+    }
+    .cal-day.empty { background: transparent; border: none; cursor: default; }
+    .cal-day.today { border-color: var(--gold); color: var(--gold); box-shadow: var(--glow-gold); }
+    .cal-day.selected { background: var(--gold-dim); border-color: var(--gold); }
+    .cal-day.has-tasks::after {
+      content: '';
+      position: absolute;
+      bottom: 3px;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--cyan);
+    }
+    .cal-day.all-done::after { background: var(--green); }
+    .cal-day.other-month { opacity: 0.3; }
+
+    /* ── ADD TASK ── */
+    .add-section { }
+    .field-group { margin-bottom: 14px; }
+    .field-label { font-size: 11px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; display: block; }
+    .field-input {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .field-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim); }
+    .field-input::placeholder { color: var(--text-dim); }
+
+    .cat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .cat-btn {
+      padding: 10px 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-dim);
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .cat-btn .cat-icon { font-size: 20px; }
+    .cat-btn.selected-sport { background: rgba(0,229,255,0.12); border-color: var(--cyan); color: var(--cyan); }
+    .cat-btn.selected-courses { background: rgba(57,255,133,0.12); border-color: var(--green); color: var(--green); }
+    .cat-btn.selected-sante { background: rgba(255,64,96,0.12); border-color: var(--red); color: var(--red); }
+    .cat-btn.selected-perso { background: rgba(168,85,247,0.12); border-color: var(--purple); color: var(--purple); }
+    .cat-btn.selected-travail { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+    .cat-btn.selected-autre { background: rgba(136,128,160,0.12); border-color: var(--text-dim); color: var(--text); }
+
+    .diff-row { display: flex; gap: 8px; }
+    .diff-btn {
+      flex: 1; padding: 10px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); cursor: pointer;
+      font-family: var(--font-body); font-size: 12px; font-weight: 600;
+      text-align: center; color: var(--text-dim);
+      transition: all 0.2s; letter-spacing: 1px;
+    }
+    .diff-btn.sel-easy { background: rgba(57,255,133,0.12); border-color: var(--green); color: var(--green); }
+    .diff-btn.sel-medium { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+    .diff-btn.sel-hard { background: rgba(255,64,96,0.12); border-color: var(--red); color: var(--red); }
+
+    .recur-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .recur-btn {
+      padding: 6px 12px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; cursor: pointer;
+      font-family: var(--font-body); font-size: 11px; font-weight: 600;
+      color: var(--text-dim); transition: all 0.2s;
+    }
+    .recur-btn.selected { background: var(--cyan-dim); border-color: var(--cyan); color: var(--cyan); }
+
+    .btn-primary {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--gold), #e8a020);
+      border: none; border-radius: var(--radius);
+      color: var(--bg); font-family: var(--font-title);
+      font-size: 13px; letter-spacing: 2px;
+      cursor: pointer; transition: all 0.2s;
+      margin-top: 6px;
+    }
+    .btn-primary:active { transform: scale(0.97); opacity: 0.9; }
+
+    /* ── PROFILE VIEW ── */
+    .profile-hero {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .profile-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(240,192,64,0.08), transparent);
+    }
+    .profile-avatar-big {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--bg3), var(--card2));
+      border: 3px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 40px; margin: 0 auto 12px;
+      box-shadow: var(--glow-gold);
+    }
+    .profile-name { font-family: var(--font-title); font-size: 18px; color: var(--gold); margin-bottom: 4px; }
+    .profile-class { font-size: 12px; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 16px; }
+    .profile-level-big { font-family: var(--font-title); font-size: 48px; color: var(--gold); line-height: 1; }
+    .profile-level-lbl { font-size: 11px; color: var(--text-dim); letter-spacing: 3px; }
+
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px;
+    }
+    .stat-card-val { font-family: var(--font-title); font-size: 24px; margin-bottom: 2px; }
+    .stat-card-lbl { font-size: 10px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; }
+    .stat-card.gold .stat-card-val { color: var(--gold); }
+    .stat-card.cyan .stat-card-val { color: var(--cyan); }
+    .stat-card.green .stat-card-val { color: var(--green); }
+    .stat-card.purple .stat-card-val { color: var(--purple); }
+
+    /* Badges */
+    .badges-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+    .badge-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 10px 6px;
+      text-align: center;
+    }
+    .badge-item.unlocked { border-color: var(--gold); background: var(--gold-dim); }
+    .badge-item.locked { opacity: 0.4; }
+    .badge-icon { font-size: 24px; margin-bottom: 4px; }
+    .badge-name { font-size: 9px; color: var(--text-dim); letter-spacing: 0.5px; }
+    .badge-item.unlocked .badge-name { color: var(--gold); }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: rgba(10,10,15,0.95); backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      display: flex; padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+      z-index: 200; max-width: 480px; margin: 0 auto;
+    }
+    .nav-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 6px; cursor: pointer; border: none; background: transparent;
+      font-family: var(--font-body); font-size: 10px; font-weight: 600;
+      letter-spacing: 1px; color: var(--text-dim); transition: all 0.2s;
+      text-transform: uppercase;
+    }
+    .nav-btn .nav-icon { font-size: 20px; transition: transform 0.2s; }
+    .nav-btn.active { color: var(--gold); }
+    .nav-btn.active .nav-icon { transform: scale(1.15); filter: drop-shadow(0 0 6px rgba(240,192,64,0.5)); }
+
+    /* FAB */
+    .fab {
+      position: fixed; bottom: 80px; right: 20px;
+      width: 54px; height: 54px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), #e8a020);
+      border: none; cursor: pointer; z-index: 150;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; box-shadow: var(--glow-gold), 0 4px 20px rgba(0,0,0,0.4);
+      transition: all 0.2s;
+    }
+    .fab:active { transform: scale(0.92); }
+
+    /* ── XP POPUP ── */
+    .xp-popup {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0);
+      background: linear-gradient(135deg, var(--card2), var(--bg3));
+      border: 2px solid var(--gold);
+      border-radius: 20px; padding: 30px 40px;
+      text-align: center; z-index: 999;
+      box-shadow: var(--glow-gold), 0 20px 60px rgba(0,0,0,0.8);
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .xp-popup.show { transform: translate(-50%,-50%) scale(1); }
+    .xp-popup-icon { font-size: 48px; margin-bottom: 12px; }
+    .xp-popup-title { font-family: var(--font-title); font-size: 14px; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 8px; }
+    .xp-popup-val { font-family: var(--font-title); font-size: 40px; color: var(--gold); }
+    .xp-popup-sub { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+
+    /* ── LEVEL UP POPUP ── */
+    .levelup-popup {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 998; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .levelup-popup.show { opacity: 1; pointer-events: all; }
+    .levelup-card {
+      background: linear-gradient(135deg, var(--card2), var(--bg3));
+      border: 2px solid var(--gold);
+      border-radius: 24px; padding: 40px 32px;
+      text-align: center; max-width: 320px; width: 90%;
+      box-shadow: var(--glow-gold), 0 30px 80px rgba(0,0,0,0.8);
+      animation: levelup-enter 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes levelup-enter { from { transform: scale(0.5) rotate(-5deg); } to { transform: scale(1) rotate(0); } }
+    .levelup-stars { font-size: 36px; letter-spacing: 8px; margin-bottom: 12px; animation: spin-stars 2s linear infinite; display: inline-block; }
+    @keyframes spin-stars { to { transform: rotate(360deg); } }
+    .levelup-title { font-family: var(--font-title); font-size: 12px; color: var(--text-dim); letter-spacing: 4px; margin-bottom: 8px; }
+    .levelup-num { font-family: var(--font-title); font-size: 72px; color: var(--gold); line-height: 1; text-shadow: var(--glow-gold); }
+    .levelup-class { font-size: 14px; color: var(--cyan); margin: 8px 0 20px; letter-spacing: 2px; }
+    .levelup-btn {
+      padding: 12px 30px; background: linear-gradient(135deg, var(--gold), #e8a020);
+      border: none; border-radius: 30px; color: var(--bg);
+      font-family: var(--font-title); font-size: 12px; letter-spacing: 2px;
+      cursor: pointer;
+    }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px); z-index: 900;
+      display: flex; align-items: flex-end; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 20px 20px 0 0;
+      padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+      width: 100%; max-width: 480px;
+      transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      max-height: 80dvh; overflow-y: auto;
+    }
+    .modal-overlay.show .modal { transform: translateY(0); }
+    .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
+    .modal-title { font-family: var(--font-title); font-size: 14px; color: var(--gold); letter-spacing: 2px; margin-bottom: 16px; }
+
+    /* Emoji picker */
+    .emoji-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; margin-bottom: 16px; }
+    .emoji-opt {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: var(--card); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; cursor: pointer; transition: all 0.2s;
+    }
+    .emoji-opt.selected { border-color: var(--gold); background: var(--gold-dim); box-shadow: var(--glow-gold); }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .task-item { animation: fadeInUp 0.3s ease both; }
+
+    .streak-fire { animation: bounce 0.6s ease infinite alternate; display: inline-block; }
+    @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.2); } }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 40px 20px;
+      color: var(--text-dim); font-size: 14px; letter-spacing: 1px;
+    }
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-top">
+      <div class="app-logo">⚔ Task LvL Up</div>
+      <div class="date-badge" id="headerDate"></div>
+    </div>
+    <div class="char-card">
+      <div class="char-avatar" id="charAvatarHeader" onclick="openAvatarModal()">⚔️</div>
+      <div class="char-info">
+        <div class="char-name" id="charNameHeader">Héros Anonyme</div>
+        <div class="char-class" id="charClassHeader">AVENTURIER • RANG D</div>
+        <div class="xp-bar-wrap">
+          <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div></div>
+          <div class="xp-label"><span>XP</span><span class="xp-val" id="xpLabel">0 / 100</span></div>
+        </div>
+      </div>
+      <div class="char-level">
+        <div class="level-num" id="levelNum">1</div>
+        <div class="level-lbl">LVL</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('today')" id="tab-today">
+      <span class="tab-icon">⚡</span>Aujourd'hui
+    </button>
+    <button class="tab-btn" onclick="showTab('calendar')" id="tab-calendar">
+      <span class="tab-icon">📅</span>Calendrier
+    </button>
+    <button class="tab-btn" onclick="showTab('profile')" id="tab-profile">
+      <span class="tab-icon">👤</span>Profil
+    </button>
+  </div>
+
+  <!-- TODAY SECTION -->
+  <div class="section active" id="section-today">
+    <div class="stat-row">
+      <div class="stat-box">
+        <div class="stat-val" id="statDone">0</div>
+        <div class="stat-lbl">FAITES</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="statTotal">0</div>
+        <div class="stat-lbl">TOTAL</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val"><span class="streak-fire">🔥</span><span id="statStreak">0</span></div>
+        <div class="stat-lbl">SÉRIE</div>
+      </div>
+    </div>
+
+    <div class="section-title">Quêtes du Jour</div>
+    <div id="todayTaskList"></div>
+  </div>
+
+  <!-- CALENDAR SECTION -->
+  <div class="section" id="section-calendar">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calNav(-1)">‹</button>
+      <div class="cal-month" id="calMonth"></div>
+      <button class="cal-nav" onclick="calNav(1)">›</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="section-title" id="calDayTitle">Quêtes</div>
+    <div id="calTaskList"></div>
+  </div>
+
+  <!-- ADD TASK SECTION (hidden, modal) -->
+
+  <!-- PROFILE SECTION -->
+  <div class="section" id="section-profile">
+    <div class="profile-hero">
+      <div class="profile-avatar-big" id="profileAvatar">⚔️</div>
+      <div class="profile-name" id="profileName">Héros Anonyme</div>
+      <div class="profile-class" id="profileClass">AVENTURIER • RANG D</div>
+      <div class="profile-level-big" id="profileLevel">1</div>
+      <div class="profile-level-lbl">NIVEAU</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card gold">
+        <div class="stat-card-val" id="totalXP">0</div>
+        <div class="stat-card-lbl">XP Total</div>
+      </div>
+      <div class="stat-card cyan">
+        <div class="stat-card-val" id="totalDone">0</div>
+        <div class="stat-card-lbl">Tâches faites</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-card-val" id="bestStreak">0</div>
+        <div class="stat-card-lbl">Meilleure série</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-card-val" id="activeDays">0</div>
+        <div class="stat-card-lbl">Jours actifs</div>
+      </div>
+    </div>
+
+    <div class="section-title">Badges</div>
+    <div class="badges-grid" id="badgesGrid"></div>
+
+    <div style="margin-top:20px">
+      <div class="section-title">Personnage</div>
+      <div class="field-group">
+        <label class="field-label">Nom</label>
+        <input class="field-input" id="charNameInput" placeholder="Ton nom de héros..." maxlength="20" oninput="saveCharName()" />
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openAddModal()">＋</button>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" onclick="showTab('today')" id="nav-today">
+    <span class="nav-icon">⚡</span>Aujourd'hui
+  </button>
+  <button class="nav-btn" onclick="showTab('calendar')" id="nav-calendar">
+    <span class="nav-icon">📅</span>Calendrier
+  </button>
+  <button class="nav-btn" onclick="showTab('profile')" id="nav-profile">
+    <span class="nav-icon">🏆</span>Profil
+  </button>
+</div>
+
+<!-- XP POPUP -->
+<div class="xp-popup" id="xpPopup">
+  <div class="xp-popup-icon">⭐</div>
+  <div class="xp-popup-title">XP GAGNÉ</div>
+  <div class="xp-popup-val" id="xpPopupVal">+25</div>
+  <div class="xp-popup-sub" id="xpPopupSub"></div>
+</div>
+
+<!-- LEVEL UP POPUP -->
+<div class="levelup-popup" id="levelupPopup" onclick="closeLevelUp()">
+  <div class="levelup-card">
+    <div class="levelup-stars">✨</div>
+    <div class="levelup-title">NIVEAU SUPÉRIEUR</div>
+    <div class="levelup-num" id="levelupNum">2</div>
+    <div class="levelup-class" id="levelupClass">GUERRIER</div>
+    <button class="levelup-btn" onclick="closeLevelUp()">CONTINUER ⚔️</button>
+  </div>
+</div>
+
+<!-- ADD TASK MODAL -->
+<div class="modal-overlay" id="addModal" onclick="closeAddModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Nouvelle Quête</div>
+
+    <div class="field-group">
+      <label class="field-label">Nom de la tâche</label>
+      <input class="field-input" id="taskNameInput" placeholder="Ex: Courir 30 min..." maxlength="50" />
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Catégorie</label>
+      <div class="cat-grid">
+        <button class="cat-btn" data-cat="sport" onclick="selectCat(this)"><span class="cat-icon">🏋️</span>Sport</button>
+        <button class="cat-btn" data-cat="courses" onclick="selectCat(this)"><span class="cat-icon">🛒</span>Courses</button>
+        <button class="cat-btn" data-cat="sante" onclick="selectCat(this)"><span class="cat-icon">💊</span>Santé</button>
+        <button class="cat-btn" data-cat="perso" onclick="selectCat(this)"><span class="cat-icon">🌱</span>Perso</button>
+        <button class="cat-btn" data-cat="travail" onclick="selectCat(this)"><span class="cat-icon">💼</span>Travail</button>
+        <button class="cat-btn" data-cat="autre" onclick="selectCat(this)"><span class="cat-icon">⭐</span>Autre</button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Difficulté & XP</label>
+      <div class="diff-row">
+        <button class="diff-btn" data-diff="easy" data-xp="10" onclick="selectDiff(this)">🟢 Facile<br><small>+10 XP</small></button>
+        <button class="diff-btn" data-diff="medium" data-xp="25" onclick="selectDiff(this)">🟡 Moyen<br><small>+25 XP</small></button>
+        <button class="diff-btn" data-diff="hard" data-xp="50" onclick="selectDiff(this)">🔴 Difficile<br><small>+50 XP</small></button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Date</label>
+      <input class="field-input" type="date" id="taskDateInput" />
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Récurrence</label>
+      <div class="recur-row">
+        <button class="recur-btn selected" data-recur="none" onclick="selectRecur(this)">Une fois</button>
+        <button class="recur-btn" data-recur="daily" onclick="selectRecur(this)">Quotidien</button>
+        <button class="recur-btn" data-recur="weekly" onclick="selectRecur(this)">Hebdo</button>
+        <button class="recur-btn" data-recur="workdays" onclick="selectRecur(this)">Jours ouvrés</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="addTask()">⚔️ AJOUTER LA QUÊTE</button>
+  </div>
+</div>
+
+<!-- AVATAR MODAL -->
+<div class="modal-overlay" id="avatarModal" onclick="closeAvatarModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Choisis ton avatar</div>
+    <div class="emoji-grid" id="emojiGrid"></div>
+    <button class="btn-primary" onclick="closeAvatarModal()">✓ CONFIRMER</button>
+  </div>
+</div>
+
+<script>
+// ──────────────────────────────
+// DATA
+// ──────────────────────────────
+const AVATARS = ['⚔️','🧙','🏹','🛡️','🦅','🐉','🌟','💎','🔥','❄️','⚡','🌙','☀️','🦁','🐺','🦊','🐉','💀','🌺','🍀'];
+const CLASSES = [
+  {lvl:1,  name:'AVENTURIER',   rang:'D'},
+  {lvl:5,  name:'GUERRIER',     rang:'C'},
+  {lvl:10, name:'CHAMPION',     rang:'B'},
+  {lvl:20, name:'MAÎTRE',       rang:'A'},
+  {lvl:35, name:'LÉGENDE',      rang:'S'},
+  {lvl:50, name:'DIEU DU CHAOS',rang:'SS'},
+];
+const BADGES = [
+  {id:'first',  icon:'🌟', name:'1ère quête',   check: s => s.totalDone >= 1},
+  {id:'ten',    icon:'💎', name:'10 quêtes',    check: s => s.totalDone >= 10},
+  {id:'fifty',  icon:'👑', name:'50 quêtes',    check: s => s.totalDone >= 50},
+  {id:'streak3',icon:'🔥', name:'Série x3',     check: s => s.bestStreak >= 3},
+  {id:'streak7',icon:'⚡', name:'Série x7',     check: s => s.bestStreak >= 7},
+  {id:'lvl5',   icon:'⚔️', name:'Lvl 5',        check: s => s.level >= 5},
+  {id:'lvl10',  icon:'🏆', name:'Lvl 10',       check: s => s.level >= 10},
+  {id:'sport5', icon:'🏋️', name:'5× Sport',     check: s => s.catCounts.sport >= 5},
+];
+
+let state = {
+  charName: 'Héros Anonyme',
+  avatar: '⚔️',
+  level: 1,
+  xp: 0,
+  xpToNext: 100,
+  totalXP: 0,
+  totalDone: 0,
+  bestStreak: 0,
+  streak: 0,
+  lastActiveDate: null,
+  activeDays: 0,
+  catCounts: {sport:0,courses:0,sante:0,perso:0,travail:0,autre:0},
+  tasks: [],
+};
+
+function load() {
+  const saved = localStorage.getItem('tasklvlup_v2');
+  if (saved) state = {...state, ...JSON.parse(saved)};
+}
+function save() {
+  localStorage.setItem('tasklvlup_v2', JSON.stringify(state));
+}
+
+// ──────────────────────────────
+// XP / LEVEL
+// ──────────────────────────────
+function xpForLevel(lvl) { return Math.floor(100 * Math.pow(1.3, lvl - 1)); }
+
+function gainXP(amount, taskName) {
+  state.xp += amount;
+  state.totalXP += amount;
+  while (state.xp >= state.xpToNext) {
+    state.xp -= state.xpToNext;
+    state.level++;
+    state.xpToNext = xpForLevel(state.level);
+    setTimeout(() => showLevelUp(), 800);
+  }
+  save();
+  updateHeader();
+  showXpPopup(amount, taskName);
+}
+
+function getClass() {
+  let cls = CLASSES[0];
+  for (const c of CLASSES) { if (state.level >= c.lvl) cls = c; }
+  return cls;
+}
+
+// ──────────────────────────────
+// STREAK
+// ──────────────────────────────
+function updateStreak() {
+  const today = todayStr();
+  if (state.lastActiveDate === today) return;
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yStr = yesterday.toISOString().split('T')[0];
+  if (state.lastActiveDate === yStr) {
+    state.streak++;
+  } else if (state.lastActiveDate !== today) {
+    state.streak = 1;
+  }
+  if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+  state.lastActiveDate = today;
+  if (!state.activeDays) state.activeDays = 0;
+  state.activeDays++;
+  save();
+}
+
+// ──────────────────────────────
+// TASKS
+// ──────────────────────────────
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+
+function getTasksForDate(dateStr) {
+  return state.tasks.filter(t => {
+    if (t.date === dateStr) return true;
+    if (t.recur === 'none') return false;
+    const td = new Date(dateStr + 'T12:00:00');
+    const created = new Date(t.date + 'T12:00:00');
+    if (td < created) return false;
+    if (t.recur === 'daily') return true;
+    if (t.recur === 'weekly') return td.getDay() === created.getDay();
+    if (t.recur === 'workdays') return td.getDay() >= 1 && td.getDay() <= 5;
+    return false;
+  });
+}
+
+function isTaskDoneOn(task, dateStr) {
+  return (task.doneOn || []).includes(dateStr);
+}
+
+function toggleTask(taskId, dateStr) {
+  const task = state.tasks.find(t => t.id === taskId);
+  if (!task) return;
+  task.doneOn = task.doneOn || [];
+  const idx = task.doneOn.indexOf(dateStr);
+  if (idx === -1) {
+    task.doneOn.push(dateStr);
+    state.totalDone++;
+    state.catCounts[task.cat] = (state.catCounts[task.cat] || 0) + 1;
+    updateStreak();
+    gainXP(task.xp, task.name);
+  } else {
+    task.doneOn.splice(idx, 1);
+    state.totalDone = Math.max(0, state.totalDone - 1);
+  }
+  save();
+  renderToday();
+  renderCalendar();
+  updateProfile();
+  updateBadges();
+}
+
+function addTask() {
+  const name = document.getElementById('taskNameInput').value.trim();
+  const dateVal = document.getElementById('taskDateInput').value;
+  const catBtn = document.querySelector('.cat-btn.selected-sport,.cat-btn.selected-courses,.cat-btn.selected-sante,.cat-btn.selected-perso,.cat-btn.selected-travail,.cat-btn.selected-autre');
+  const diffBtn = document.querySelector('.diff-btn.sel-easy,.diff-btn.sel-medium,.diff-btn.sel-hard');
+  const recurBtn = document.querySelector('.recur-btn.selected');
+
+  if (!name) { alert('Donne un nom à ta quête !'); return; }
+  if (!catBtn) { alert('Choisis une catégorie !'); return; }
+  if (!diffBtn) { alert('Choisis une difficulté !'); return; }
+
+  const task = {
+    id: Date.now().toString(),
+    name,
+    cat: catBtn.dataset.cat,
+    diff: diffBtn.dataset.diff,
+    xp: parseInt(diffBtn.dataset.xp),
+    date: dateVal || todayStr(),
+    recur: recurBtn ? recurBtn.dataset.recur : 'none',
+    doneOn: [],
+  };
+  state.tasks.push(task);
+  save();
+  closeAddModal();
+  renderToday();
+  renderCalendar();
+  // Reset form
+  document.getElementById('taskNameInput').value = '';
+  document.querySelectorAll('.cat-btn').forEach(b => b.className = 'cat-btn');
+  document.querySelectorAll('.diff-btn').forEach(b => b.className = 'diff-btn');
+  document.querySelectorAll('.recur-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelector('.recur-btn[data-recur="none"]').classList.add('selected');
+}
+
+// ──────────────────────────────
+// RENDER TODAY
+// ──────────────────────────────
+function renderToday() {
+  const today = todayStr();
+  const tasks = getTasksForDate(today);
+  const done = tasks.filter(t => isTaskDoneOn(t, today));
+  document.getElementById('statDone').textContent = done.length;
+  document.getElementById('statTotal').textContent = tasks.length;
+  document.getElementById('statStreak').textContent = state.streak || 0;
+
+  const list = document.getElementById('todayTaskList');
+  if (tasks.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🗡️</div>Aucune quête aujourd'hui.<br>Ajoute ta première mission !</div>`;
+    return;
+  }
+  const sorted = [...tasks].sort((a,b) => isTaskDoneOn(a,today) - isTaskDoneOn(b,today));
+  list.innerHTML = sorted.map((t,i) => {
+    const done = isTaskDoneOn(t, today);
+    return `<div class="task-item ${done?'done':''}" data-cat="${t.cat}" style="animation-delay:${i*0.06}s" onclick="toggleTask('${t.id}','${today}')">
+      <div class="task-check">${done?'✓':''}</div>
+      <div class="task-body">
+        <div class="task-name">${t.name}</div>
+        <div class="task-meta">
+          <span class="task-cat ${t.cat}">${catLabel(t.cat)}</span>
+        </div>
+      </div>
+      <div class="task-xp">+${t.xp} XP</div>
+    </div>`;
+  }).join('');
+}
+
+function catLabel(cat) {
+  return {sport:'Sport',courses:'Courses',sante:'Santé',perso:'Perso',travail:'Travail',autre:'Autre'}[cat] || cat;
+}
+
+// ──────────────────────────────
+// CALENDAR
+// ──────────────────────────────
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let selectedCalDate = todayStr();
+
+function renderCalendar() {
+  const DAYS = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  const monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  document.getElementById('calMonth').textContent = `${monthNames[calMonth]} ${calYear}`;
+
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay = new Date(calYear, calMonth + 1, 0);
+  let startDow = firstDay.getDay(); // 0=sun
+  startDow = startDow === 0 ? 6 : startDow - 1; // Monday first
+
+  const grid = document.getElementById('calGrid');
+  let html = DAYS.map(d => `<div class="cal-day-label">${d}</div>`).join('');
+
+  for (let i = 0; i < startDow; i++) html += '<div class="cal-day empty"></div>';
+
+  const today = todayStr();
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const tasks = getTasksForDate(dateStr);
+    const done = tasks.filter(t => isTaskDoneOn(t, dateStr));
+    const isToday = dateStr === today;
+    const isSel = dateStr === selectedCalDate;
+    const hasTasks = tasks.length > 0;
+    const allDone = hasTasks && done.length === tasks.length;
+    let cls = 'cal-day';
+    if (isToday) cls += ' today';
+    if (isSel) cls += ' selected';
+    if (allDone) cls += ' all-done';
+    else if (hasTasks) cls += ' has-tasks';
+    html += `<div class="${cls}" onclick="selectCalDay('${dateStr}')">${d}</div>`;
+  }
+  grid.innerHTML = html;
+  renderCalDayTasks();
+}
+
+function selectCalDay(dateStr) {
+  selectedCalDate = dateStr;
+  renderCalendar();
+}
+
+function renderCalDayTasks() {
+  const tasks = getTasksForDate(selectedCalDate);
+  const fmt = new Date(selectedCalDate + 'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('calDayTitle').textContent = fmt;
+
+  const list = document.getElementById('calTaskList');
+  if (tasks.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div>Aucune quête ce jour.</div>`;
+    return;
+  }
+  list.innerHTML = tasks.map((t,i) => {
+    const done = isTaskDoneOn(t, selectedCalDate);
+    return `<div class="task-item ${done?'done':''}" data-cat="${t.cat}" style="animation-delay:${i*0.06}s" onclick="toggleTask('${t.id}','${selectedCalDate}')">
+      <div class="task-check">${done?'✓':''}</div>
+      <div class="task-body">
+        <div class="task-name">${t.name}</div>
+        <div class="task-meta">
+          <span class="task-cat ${t.cat}">${catLabel(t.cat)}</span>
+          ${t.recur!=='none'?`<span style="font-size:10px;color:var(--cyan)">↻ ${recurLabel(t.recur)}</span>`:''}
+        </div>
+      </div>
+      <div class="task-xp">+${t.xp} XP</div>
+    </div>`;
+  }).join('');
+}
+
+function recurLabel(r) {
+  return {daily:'Quotidien',weekly:'Hebdo',workdays:'Ouvrés'}[r] || '';
+}
+
+function calNav(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+// ──────────────────────────────
+// HEADER / PROFILE
+// ──────────────────────────────
+function updateHeader() {
+  const pct = Math.min(100, Math.floor((state.xp / state.xpToNext) * 100));
+  document.getElementById('xpBarFill').style.width = pct + '%';
+  document.getElementById('xpLabel').textContent = `${state.xp} / ${state.xpToNext}`;
+  document.getElementById('levelNum').textContent = state.level;
+  document.getElementById('charAvatarHeader').textContent = state.avatar;
+  document.getElementById('charNameHeader').textContent = state.charName;
+  const cls = getClass();
+  document.getElementById('charClassHeader').textContent = `${cls.name} • RANG ${cls.rang}`;
+
+  const today = new Date();
+  document.getElementById('headerDate').textContent = today.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'short'}).toUpperCase();
+}
+
+function updateProfile() {
+  document.getElementById('profileAvatar').textContent = state.avatar;
+  document.getElementById('profileName').textContent = state.charName;
+  const cls = getClass();
+  document.getElementById('profileClass').textContent = `${cls.name} • RANG ${cls.rang}`;
+  document.getElementById('profileLevel').textContent = state.level;
+  document.getElementById('totalXP').textContent = state.totalXP;
+  document.getElementById('totalDone').textContent = state.totalDone;
+  document.getElementById('bestStreak').textContent = state.bestStreak;
+  document.getElementById('activeDays').textContent = state.activeDays || 0;
+  document.getElementById('charNameInput').value = state.charName;
+}
+
+function updateBadges() {
+  const grid = document.getElementById('badgesGrid');
+  grid.innerHTML = BADGES.map(b => {
+    const unlocked = b.check(state);
+    return `<div class="badge-item ${unlocked?'unlocked':'locked'}">
+      <div class="badge-icon">${b.icon}</div>
+      <div class="badge-name">${b.name}</div>
+    </div>`;
+  }).join('');
+}
+
+function saveCharName() {
+  state.charName = document.getElementById('charNameInput').value || 'Héros Anonyme';
+  save();
+  updateHeader();
+  updateProfile();
+}
+
+// ──────────────────────────────
+// POPUPS
+// ──────────────────────────────
+function showXpPopup(amount, name) {
+  const el = document.getElementById('xpPopup');
+  document.getElementById('xpPopupVal').textContent = '+' + amount + ' XP';
+  document.getElementById('xpPopupSub').textContent = name || '';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+function showLevelUp() {
+  const el = document.getElementById('levelupPopup');
+  document.getElementById('levelupNum').textContent = state.level;
+  const cls = getClass();
+  document.getElementById('levelupClass').textContent = cls.name + ' • RANG ' + cls.rang;
+  el.classList.add('show');
+}
+
+function closeLevelUp() {
+  document.getElementById('levelupPopup').classList.remove('show');
+}
+
+// ──────────────────────────────
+// MODALS
+// ──────────────────────────────
+function openAddModal() {
+  document.getElementById('taskDateInput').value = selectedCalDate || todayStr();
+  document.getElementById('addModal').classList.add('show');
+}
+function closeAddModal(e) {
+  if (!e || e.target.id === 'addModal') document.getElementById('addModal').classList.remove('show');
+}
+
+function openAvatarModal() {
+  const grid = document.getElementById('emojiGrid');
+  grid.innerHTML = AVATARS.map(e => `<div class="emoji-opt ${e===state.avatar?'selected':''}" onclick="selectAvatar(this,'${e}')">${e}</div>`).join('');
+  document.getElementById('avatarModal').classList.add('show');
+}
+function closeAvatarModal(e) {
+  if (!e || e.target.id === 'avatarModal') {
+    document.getElementById('avatarModal').classList.remove('show');
+    updateHeader(); updateProfile();
+  }
+}
+function selectAvatar(el, emoji) {
+  document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  state.avatar = emoji;
+  save();
+}
+
+// ──────────────────────────────
+// FORM SELECTORS
+// ──────────────────────────────
+function selectCat(btn) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.className = 'cat-btn');
+  btn.classList.add('selected-' + btn.dataset.cat);
+}
+function selectDiff(btn) {
+  document.querySelectorAll('.diff-btn').forEach(b => b.className = 'diff-btn');
+  const map = {easy:'sel-easy', medium:'sel-medium', hard:'sel-hard'};
+  btn.classList.add(map[btn.dataset.diff]);
+}
+function selectRecur(btn) {
+  document.querySelectorAll('.recur-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// ──────────────────────────────
+// TABS
+// ──────────────────────────────
+function showTab(tab) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('section-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab)?.classList.add('active');
+  document.getElementById('nav-' + tab)?.classList.add('active');
+  if (tab === 'profile') { updateProfile(); updateBadges(); }
+  if (tab === 'calendar') renderCalendar();
+}
+
+// ──────────────────────────────
+// INIT
+// ──────────────────────────────
+load();
+state.xpToNext = xpForLevel(state.level);
+// Recompute xpToNext based on level
+let xpAcc = 0;
+for (let l = 1; l < state.level; l++) xpAcc += xpForLevel(l);
+// Don't mess with existing xp, just ensure xpToNext is correct
+state.xpToNext = xpForLevel(state.level);
+save();
+
+updateHeader();
+renderToday();
+updateBadges();
+</script>
+
+<!-- PWA SW Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
